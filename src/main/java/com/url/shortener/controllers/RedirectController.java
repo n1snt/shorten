@@ -1,5 +1,7 @@
 package com.url.shortener.controllers;
 
+import com.url.shortener.constants.Resource;
+import com.url.shortener.exceptions.variants.ResourceNotFoundException;
 import com.url.shortener.models.Shorten;
 import com.url.shortener.services.ShortenService;
 import org.springframework.http.HttpStatus;
@@ -14,14 +16,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class RedirectController {
 
     private final ShortenService shortenService;
+    private final String resource = Resource.USER;
 
     public RedirectController(ShortenService shortenService) {
         this.shortenService = shortenService;
     }
 
     @GetMapping("/{short_code}")
-    private ResponseEntity<Void> get(@PathVariable String short_code) {
+    private ResponseEntity<Void> get(@PathVariable String short_code) throws ResourceNotFoundException {
         Shorten shorten = shortenService.shortUrlByCode(short_code);
+        if (shorten == null) {
+            throw new ResourceNotFoundException(resource);
+        }
         return ResponseEntity.status(HttpStatus.FOUND).header("Location", shorten.getOriginalUrl()).build();
     }
 }

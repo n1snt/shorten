@@ -3,7 +3,10 @@ package com.url.shortener.services;
 import com.url.shortener.models.Shorten;
 import com.url.shortener.respository.ShortenRepository;
 import com.url.shortener.utils.ShortCodeGenerator;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class ShortenService {
@@ -13,24 +16,39 @@ public class ShortenService {
         this.shortenRepository = shortenRepository;
     }
 
-    public Shorten addShortUrl(Shorten input) {
-        if (input.getShortCode() == null) {
-            input.setShortCode(ShortCodeGenerator.generate(input.getOriginalUrl()));
+    public Shorten addShortUrl(Shorten input) throws DuplicateKeyException, IllegalStateException {
+        int maxRetries = 5;
+        boolean userSuppliedCode = input.getShortCode() != null;
+
+        for (int i = 0; i < maxRetries; i++) {
+            if (!userSuppliedCode) {
+                input.setShortCode(
+                        ShortCodeGenerator.generate(input.getOriginalUrl())
+                );
+            }
+            try {
+                return shortenRepository.addShortUrl(input);
+            } catch (DuplicateKeyException e) {
+                if (userSuppliedCode || i == maxRetries - 1) {
+                    throw e;
+                }
+            }
         }
-        return shortenRepository.addShortUrl(input).get();
+
+        throw new IllegalStateException("Unexpected execution");
     }
 
-    public void deleteShortUrl(String shortCode) {
-        shortenRepository.deleteShortUrl(shortCode);
+    public boolean deleteShortUrl(String shortCode) {
+        int deleted = shortenRepository.deleteShortUrl(shortCode);
+        return deleted > 0;
     }
 
-    public Shorten updateShortUrl(Shorten input) {
-        return shortenRepository.updateShortUrl(input).get();
+    public Shorten updateShortUrl(String existingShortCode, Shorten input) {
+        return shortenRepository.updateShortUrl(existingShortCode, input);
     }
 
     public Shorten shortUrlByCode(String shortCode) {
-        return shortenRepository.getShortUrlByShortCode(shortCode).get();
+        Optional<Shorten> shorten = shortenRepository.getShortUrlByShortCode(shortCode);
+        return shorten.orElse(null);
     }
-
-
 }
