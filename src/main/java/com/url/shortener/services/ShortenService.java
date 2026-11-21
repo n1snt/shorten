@@ -47,8 +47,8 @@ public class ShortenService {
         return shortenRepository.updateShortUrl(existingShortCode, input);
     }
 
-    public Shorten shortUrlByCode(String shortCode) {
-        Optional<Shorten> shorten = shortenRepository.getShortUrlByShortCode(shortCode);
+    public String shortUrlByCode(String shortCode) {
+        Optional<String> shorten = shortenRepository.getShortUrlByShortCode(shortCode);
         return shorten.orElse(null);
     }
 }

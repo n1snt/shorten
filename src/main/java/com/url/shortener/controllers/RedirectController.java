@@ -24,10 +24,10 @@ public class RedirectController {
 
     @GetMapping("/{short_code}")
     private ResponseEntity<Void> get(@PathVariable String short_code) throws ResourceNotFoundException {
-        Shorten shorten = shortenService.shortUrlByCode(short_code);
-        if (shorten == null) {
+        String originalUrl = shortenService.shortUrlByCode(short_code);
+        if (originalUrl == null) {
             throw new ResourceNotFoundException(resource);
         }
-        return ResponseEntity.status(HttpStatus.FOUND).header("Location", shorten.getOriginalUrl()).build();
+        return ResponseEntity.status(HttpStatus.FOUND).header("Location", originalUrl).build();
     }
 }

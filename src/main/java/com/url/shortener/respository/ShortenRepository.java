@@ -56,13 +56,13 @@ public class ShortenRepository {
                 .single();
     }
 
-    public Optional<Shorten> getShortUrlByShortCode(String shortCode) {
+    public Optional<String> getShortUrlByShortCode(String shortCode) {
         return jdbcClient.sql("""
-                SELECT original_url, expiry FROM short_urls 
+                SELECT original_url FROM short_urls 
                 WHERE short_code = :shortCode AND expiry > now();
                 """)
                 .param("shortCode", shortCode)
-                .query(Shorten.class)
+                .query(String.class)
                 .optional();
     }
 }
