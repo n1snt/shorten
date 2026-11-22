@@ -3,6 +3,7 @@ package com.url.shortener.services;
 import com.url.shortener.models.Shorten;
 import com.url.shortener.respository.ShortenRepository;
 import com.url.shortener.utils.ShortCodeGenerator;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +48,7 @@ public class ShortenService {
         return shortenRepository.updateShortUrl(existingShortCode, input);
     }
 
+    @Cacheable(value = "short_codes", key="#shortCode")
     public String shortUrlByCode(String shortCode) {
         Optional<String> shorten = shortenRepository.getShortUrlByShortCode(shortCode);
         return shorten.orElse(null);
